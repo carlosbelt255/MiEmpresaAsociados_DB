@@ -10,18 +10,27 @@ Ejemplo de Ejecución de Procedimientos Almacenados
 Requisitos
 Instalación
 Estructura de la Base de Datos
+
+
 1. Tabla Departamentos
 Esta tabla almacena los departamentos de la organización.
 
 Campos:
 
 DepartamentoID: Identificador único (Primary Key, Identity)
+
 Nombre: Nombre del departamento
+
 FechaCreacion: Fecha en que se creó el registro
+
 Estado: Indica si el departamento está activo o inactivo
+
 CreadoPor: Usuario que creó el registro
+
 ModificadoPor: Usuario que modificó el registro
+
 FechaModificacion: Fecha de la última modificación
+
 2. Tabla Asociados
 Esta tabla almacena la información de los asociados de la empresa.
 
