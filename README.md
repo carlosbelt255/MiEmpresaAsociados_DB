@@ -8,13 +8,13 @@ Este proyecto consiste en la creación de una base de datos en SQL Server para g
 2. [Campos de Auditoría](#campos-de-auditoría)
 3. [Procedimientos Almacenados (CRUD)](#procedimientos-almacenados-crud)
 4. [Proceso de Cálculo de Aumentos](#proceso-de-cálculo-de-aumentos)
+5. [Ejemplo de Ejecución de Procedimientos Almacenados](#ejemplo-de-ejecución-de-procedimientos-almacenados)
 6. [Requisitos](#requisitos)
 7. [Instalación](#instalación)
 
 ---
 
 ## Estructura de la Base de Datos
-
 ### 1. **Tabla `Departamentos`**
 Esta tabla almacena los departamentos de la organización.
 
@@ -105,36 +105,41 @@ Se han implementado procedimientos almacenados para la gestión de registros (Co
 
 El procedimiento almacenado `CalcularAumentoSalario` es el encargado de aplicar los aumentos salariales:
 
-### Parámetros:
-
-- `@Porcentaje`: Porcentaje de aumento a aplicar.
-- `@DepartamentoID`: Si es `NULL`, se aplica a todos los departamentos. Si se proporciona, se aplica solo al departamento indicado.
-- `@Usuario`: Usuario que ejecuta el aumento (para auditoría).
-
-### El procedimiento realiza las siguientes acciones:
-
-1. Inserta un registro en la tabla `Aumentos`.
-2. Actualiza los salarios de los asociados.
-3. Registra los cambios en la tabla `HistorialSalarios`.
-
-### Ejemplo de Ejecución:
-
 ```sql
 -- Aplicar un aumento global
 EXEC CalcularAumentoSalario @Porcentaje = 5.00, @DepartamentoID = NULL, @Usuario = 'admin';
 
 -- Aplicar un aumento a un departamento específico
 EXEC CalcularAumentoSalario @Porcentaje = 3.00, @DepartamentoID = 1, @Usuario = 'admin';
+```
+## Ejemplo de Ejecución de Procedimientos Almacenados
 
-# Requisitos
+```sql
+-- Insertar un nuevo departamento:
+EXEC InsertarDepartamento @Nombre = 'Recursos Humanos', @Estado = 'Activo', @CreadoPor = 'admin';
 
-- **SQL Server** (versión recomendada: SQL Server 2016 o superior).
-- Acceso a un entorno de desarrollo compatible con SQL Server.
-- Usuario con permisos suficientes para la creación de tablas y procedimientos almacenados.
+-- Insertar un nuevo asociado:
+EXEC InsertarAsociado @Nombre = 'Juan Pérez', @Salario = 20000, @DepartamentoID = 1, @Estado = 'Activo', @CreadoPor = 'admin';
 
-# Instalación
+-- Aplicar un aumento global:
+EXEC CalcularAumentoSalario @Porcentaje = 5.00, @DepartamentoID = NULL, @Usuario = 'admin';
+
+-- Aplicar un aumento a un departamento específico:
+EXEC CalcularAumentoSalario @Porcentaje = 3.00, @DepartamentoID = 1, @Usuario = 'admin';
+```
+
+## Requisitos
+
+1. SQL Server (versión recomendada: SQL Server 2016 o superior).
+2. Acceso a un entorno de desarrollo compatible con SQL Server.
+3. Usuario con permisos suficientes para la creación de tablas y procedimientos almacenados.
+
+## Instalación
 
 1. Ejecuta los scripts SQL proporcionados en este repositorio para crear las tablas y los procedimientos almacenados.
 2. Usa los ejemplos de ejecución de procedimientos almacenados para probar la funcionalidad.
 3. Verifica que los usuarios tengan los roles adecuados para gestionar los aumentos salariales.
+
+
+
 
