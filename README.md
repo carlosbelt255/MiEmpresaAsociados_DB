@@ -8,7 +8,6 @@ Este proyecto consiste en la creación de una base de datos en SQL Server para g
 2. [Campos de Auditoría](#campos-de-auditoría)
 3. [Procedimientos Almacenados (CRUD)](#procedimientos-almacenados-crud)
 4. [Proceso de Cálculo de Aumentos](#proceso-de-cálculo-de-aumentos)
-5. [Ejemplo de Ejecución de Procedimientos Almacenados](#ejemplo-de-ejecución-de-procedimientos-almacenados)
 6. [Requisitos](#requisitos)
 7. [Instalación](#instalación)
 
@@ -127,4 +126,15 @@ EXEC CalcularAumentoSalario @Porcentaje = 5.00, @DepartamentoID = NULL, @Usuario
 -- Aplicar un aumento a un departamento específico
 EXEC CalcularAumentoSalario @Porcentaje = 3.00, @DepartamentoID = 1, @Usuario = 'admin';
 
+# Requisitos
+
+- **SQL Server** (versión recomendada: SQL Server 2016 o superior).
+- Acceso a un entorno de desarrollo compatible con SQL Server.
+- Usuario con permisos suficientes para la creación de tablas y procedimientos almacenados.
+
+# Instalación
+
+1. Ejecuta los scripts SQL proporcionados en este repositorio para crear las tablas y los procedimientos almacenados.
+2. Usa los ejemplos de ejecución de procedimientos almacenados para probar la funcionalidad.
+3. Verifica que los usuarios tengan los roles adecuados para gestionar los aumentos salariales.
 
