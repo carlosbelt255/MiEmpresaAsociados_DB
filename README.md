@@ -106,7 +106,25 @@ Se han implementado procedimientos almacenados para la gestión de registros (Co
 
 El procedimiento almacenado `CalcularAumentoSalario` es el encargado de aplicar los aumentos salariales:
 
+### Parámetros:
+
+- `@Porcentaje`: Porcentaje de aumento a aplicar.
+- `@DepartamentoID`: Si es `NULL`, se aplica a todos los departamentos. Si se proporciona, se aplica solo al departamento indicado.
+- `@Usuario`: Usuario que ejecuta el aumento (para auditoría).
+
+### El procedimiento realiza las siguientes acciones:
+
+1. Inserta un registro en la tabla `Aumentos`.
+2. Actualiza los salarios de los asociados.
+3. Registra los cambios en la tabla `HistorialSalarios`.
+
+### Ejemplo de Ejecución:
+
 ```sql
+-- Aplicar un aumento global
 EXEC CalcularAumentoSalario @Porcentaje = 5.00, @DepartamentoID = NULL, @Usuario = 'admin';
+
+-- Aplicar un aumento a un departamento específico
+EXEC CalcularAumentoSalario @Porcentaje = 3.00, @DepartamentoID = 1, @Usuario = 'admin';
 
 
