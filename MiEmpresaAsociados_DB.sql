@@ -2,7 +2,7 @@
 CREATE DATABASE MiEmpresaAsociados_DB;
 GO
 
--- Usar la base de datos recién creada
+-- Usar la base de datos reciÃ©n creada
 USE MiEmpresaAsociados_DB;
 GO
 
@@ -12,9 +12,9 @@ CREATE TABLE Departamentos (
     Nombre NVARCHAR(100) NOT NULL,
     FechaCreacion DATE NOT NULL DEFAULT GETDATE(),
     Estado NVARCHAR(10) NOT NULL CHECK (Estado IN ('Activo', 'Inactivo')),
-    CreadoPor NVARCHAR(100) NOT NULL, -- campo de auditoría
-    ModificadoPor NVARCHAR(100) NULL, -- campos de auditoría
-    FechaModificacion DATE NULL -- campos de auditoría
+    CreadoPor NVARCHAR(100) NOT NULL, -- campo de auditorÃ­a
+    ModificadoPor NVARCHAR(100) NULL, -- campos de auditorÃ­a
+    FechaModificacion DATE NULL -- campos de auditorÃ­a
 );
 GO
 
@@ -28,9 +28,9 @@ CREATE TABLE Asociados (
     DepartamentoID INT,
     FechaUltimoAumento DATE NULL,
     SalarioAnterior DECIMAL(18, 2) NULL,
-    CreadoPor NVARCHAR(100) NOT NULL, -- campo de auditoría
-    ModificadoPor NVARCHAR(100) NULL, -- campo de auditoría
-    FechaModificacion DATE NULL, -- campos de auditoría
+    CreadoPor NVARCHAR(100) NOT NULL, -- campo de auditorÃ­a
+    ModificadoPor NVARCHAR(100) NULL, -- campo de auditorÃ­a
+    FechaModificacion DATE NULL, -- campos de auditorÃ­a
     FOREIGN KEY (DepartamentoID) REFERENCES Departamentos(DepartamentoID)
 );
 GO
@@ -42,7 +42,7 @@ CREATE TABLE Aumentos (
     Porcentaje DECIMAL(5, 2) NOT NULL, -- Porcentaje del aumento
     FechaAumento DATE NOT NULL DEFAULT GETDATE(),
     Descripcion NVARCHAR(255),
-    CreadoPor NVARCHAR(100) NOT NULL, -- Auditoría
+    CreadoPor NVARCHAR(100) NOT NULL, -- AuditorÃ­a
     FOREIGN KEY (DepartamentoID) REFERENCES Departamentos(DepartamentoID)
 );
 GO
@@ -55,7 +55,7 @@ CREATE TABLE HistorialSalarios (
     SalarioNuevo DECIMAL(18, 2) NOT NULL,
     FechaAjuste DATE NOT NULL DEFAULT GETDATE(),
     AumentoID INT NOT NULL,
-    CreadoPor NVARCHAR(100) NOT NULL, -- Auditoría
+    CreadoPor NVARCHAR(100) NOT NULL, -- AuditorÃ­a
     FOREIGN KEY (AsociadoID) REFERENCES Asociados(AsociadoID),
     FOREIGN KEY (AumentoID) REFERENCES Aumentos(AumentoID)
 );
@@ -65,7 +65,7 @@ GO
 CREATE PROCEDURE CalcularAumentoSalario
     @Porcentaje DECIMAL(5, 2),
     @DepartamentoID INT = NULL, -- NULL si aplica a todos los departamentos
-    @Usuario NVARCHAR(100) -- Usuario que realiza la operación (Auditoría)
+    @Usuario NVARCHAR(100) -- Usuario que realiza la operaciÃ³n (AuditorÃ­a)
 AS
 BEGIN
     DECLARE @AumentoID INT;
@@ -74,7 +74,7 @@ BEGIN
     INSERT INTO Aumentos (DepartamentoID, Porcentaje, CreadoPor)
     VALUES (@DepartamentoID, @Porcentaje, @Usuario);
 
-    -- Obtener el ID del aumento recién creado
+    -- Obtener el ID del aumento reciÃ©n creado
     SET @AumentoID = SCOPE_IDENTITY();
 
     -- Actualizar los salarios de los asociados
@@ -122,7 +122,7 @@ GO
 CREATE USER Carlos FOR LOGIN Carlos;
 CREATE USER Eduardo FOR LOGIN Eduardo;
 
--- Asignar roles a usuarios específicos
+-- Asignar roles a usuarios especÃ­ficos
 -- Ejemplo: Asignar el rol GerenteDeRecursosHumanos al usuario 'Juan'
 EXEC sp_addrolemember 'GerenteDeRecursosHumanos', 'Carlos';
 GO
@@ -132,7 +132,7 @@ EXEC sp_addrolemember 'SupervisorSalarios', 'Eduardo';
 GO
 
 
-------- PROCEDIMIENTOS ALMACENADOS - GESTIÓN DE DATOS -----------------------------------------------------
+------- PROCEDIMIENTOS ALMACENADOS - GESTIÃ“N DE DATOS -----------------------------------------------------
 
 --PA's PARA LA ENTIDAD DE DEPARTAMENTOS:
 
@@ -174,7 +174,7 @@ BEGIN
 END;
 GO
 
--- Procedimiento para eliminar (lógicamente) un departamento
+-- Procedimiento para eliminar (lÃ³gicamente) un departamento
 CREATE PROCEDURE EliminarDepartamento
     @DepartamentoID INT,
     @ModificadoPor NVARCHAR(100)
@@ -193,51 +193,100 @@ GO
 
 --PA's PARA LA ENTIDAD DE ASOCIADOS:
 
--- Procedimiento para consultar todos los asociados
 CREATE PROCEDURE ConsultarAsociados
 AS
 BEGIN
-    SELECT AsociadoID, Nombre, Salario, FechaIngreso, Estado, DepartamentoID, SalarioAnterior, FechaUltimoAumento, CreadoPor, ModificadoPor, FechaModificacion
-    FROM Asociados;
+    SELECT 
+        A.AsociadoID,
+        A.Nombre,
+        A.Salario,
+        A.FechaIngreso,
+        A.Estado,
+        A.DepartamentoID,
+		D.nombre as NombreDpto,
+        ISNULL(A.SalarioAnterior, 0.00) AS SalarioAnterior, -- Reemplazar NULL con 0.00
+        ISNULL(A.FechaUltimoAumento, '2024-01-01') AS FechaUltimoAumento, -- Reemplazar NULL con '01/01/2024'
+        A.CreadoPor,
+        ISNULL(A.ModificadoPor, 'pendiente') AS ModificadoPor, -- Reemplazar NULL con 'pendiente'
+        ISNULL(A.FechaModificacion, '2024-01-01') AS FechaModificacion -- Reemplazar NULL con '01/01/2024'
+
+    FROM 
+        Asociados A
+    LEFT JOIN 
+        Departamentos D ON A.DepartamentoID = D.DepartamentoID;
 END;
 GO
 
--- Procedimiento para insertar un nuevo asociado
+GO
+
+-- Procedimiento para actualizar el procedimiento almacenado InsertarAsociado con valores predeterminados
 CREATE PROCEDURE InsertarAsociado
     @Nombre NVARCHAR(100),
     @Salario DECIMAL(18, 2),
-    @DepartamentoID INT,
+    @FechaIngreso DATE,  -- Incluimos la fecha de ingreso como parÃ¡metro
     @Estado NVARCHAR(10),
+    @DepartamentoID INT,
     @CreadoPor NVARCHAR(100)
 AS
 BEGIN
-    INSERT INTO Asociados (Nombre, Salario, FechaIngreso, Estado, DepartamentoID, CreadoPor)
-    VALUES (@Nombre, @Salario, GETDATE(), @Estado, @DepartamentoID, @CreadoPor);
+    INSERT INTO Asociados (
+        Nombre, 
+        Salario, 
+        FechaIngreso, 
+        Estado, 
+        DepartamentoID, 
+        CreadoPor, 
+        FechaUltimoAumento, 
+        SalarioAnterior, 
+        ModificadoPor, 
+        FechaModificacion
+    )
+    VALUES (
+        @Nombre, 
+        @Salario, 
+        @FechaIngreso, 
+        @Estado, 
+        @DepartamentoID, 
+        @CreadoPor,
+        '2024-01-01',               -- FechaUltimoAumento por defecto
+        0.00,                       -- SalarioAnterior por defecto
+        'pendiente',                -- ModificadoPor por defecto
+        '2024-01-01'                -- FechaModificacion por defecto
+    );
 END;
 GO
 
--- Procedimiento para modificar un asociado existente
+
+
+-- Procedimiento para modificar un asociado existente con campos adicionales
 CREATE PROCEDURE ModificarAsociado
     @AsociadoID INT,
     @Nombre NVARCHAR(100),
     @Salario DECIMAL(18, 2),
-    @DepartamentoID INT,
+    @FechaIngreso DATE,
     @Estado NVARCHAR(10),
+    @DepartamentoID INT,
+    @FechaUltimoAumento DATE = NULL,
+    @SalarioAnterior DECIMAL(18, 2) = NULL,
     @ModificadoPor NVARCHAR(100)
 AS
 BEGIN
     UPDATE Asociados
     SET Nombre = @Nombre,
         Salario = @Salario,
-        DepartamentoID = @DepartamentoID,
+        FechaIngreso = @FechaIngreso,
         Estado = @Estado,
+        DepartamentoID = @DepartamentoID,
+        FechaUltimoAumento = @FechaUltimoAumento,
+        SalarioAnterior = @SalarioAnterior,
         ModificadoPor = @ModificadoPor,
         FechaModificacion = GETDATE()
     WHERE AsociadoID = @AsociadoID;
 END;
 GO
 
--- Procedimiento para eliminar (lógicamente) un asociado
+
+-- Procedimiento para eliminar (lÃ³gicamente) un asociado
 CREATE PROCEDURE EliminarAsociado
     @AsociadoID INT,
     @ModificadoPor NVARCHAR(100)
@@ -257,11 +306,27 @@ GO
 --PA's PARA LA ENTIDAD DE AUMENTOS:
 
 -- Procedimiento para consultar todos los aumentos
+
 CREATE PROCEDURE ConsultarAumentos
 AS
 BEGIN
-    SELECT AumentoID, DepartamentoID, Porcentaje, FechaAumento, Descripcion, CreadoPor
-    FROM Aumentos;
+    SELECT 
+        A.AumentoID,
+        D.Nombre AS NombreDepartamento,
+        A.Porcentaje,
+        A.FechaAumento,
+        ISNULL(A.Descripcion, 'Incentivo') AS Descripcion,  -- Si Descripcion es nulo, se muestra "Incentivo"
+        A.CreadoPor,
+        ASO.AsociadoID,
+        ASO.Nombre AS NombreAsociado,
+        ASO.Salario AS SalarioActual,
+        ASO.SalarioAnterior
+    FROM 
+        Aumentos A
+    INNER JOIN 
+        Asociados ASO ON A.DepartamentoID = ASO.DepartamentoID
+    INNER JOIN 
+        Departamentos D ON A.DepartamentoID = D.DepartamentoID;
 END;
 GO
 
@@ -291,12 +356,12 @@ BEGIN
     SET DepartamentoID = @DepartamentoID,
         Porcentaje = @Porcentaje,
         Descripcion = @Descripcion,
-        CreadoPor = @ModificadoPor -- Auditamos la modificación
+        CreadoPor = @ModificadoPor -- Auditamos la modificaciÃ³n
     WHERE AumentoID = @AumentoID;
 END;
 GO
 
--- Procedimiento para eliminar un aumento (no se elimina lógicamente, porque es parte del historial)
+-- Procedimiento para eliminar un aumento (no se elimina lÃ³gicamente, porque es parte del historial)
 CREATE PROCEDURE EliminarAumento
     @AumentoID INT
 AS
@@ -318,52 +383,62 @@ BEGIN
 END;
 GO
 
-
 --EXEC'S
 -- Insertar un departamento
-EXEC InsertarDepartamento @Nombre = 'Recursos Humanos', @Estado = 'Activo', @CreadoPor = 'admin';
+EXEC InsertarDepartamento @Nombre = 'Recepcion', @Estado = 'Activo', @CreadoPor = 'admin';
 -- Modificar un departamento
-EXEC ModificarDepartamento @DepartamentoID = 1, @Nombre = 'Recursos Humanos y Administración', @Estado = 'Activo', @ModificadoPor = 'admin';
--- Eliminar (lógicamente) un departamento
-EXEC EliminarDepartamento @DepartamentoID = 1, @ModificadoPor = 'admin';
+EXEC ModificarDepartamento @DepartamentoID = 5, @Nombre = 'Recursos Humanos y AdministraciÃ³n', @Estado = 'Activo', @ModificadoPor = 'admin';
+-- Eliminar (lÃ³gicamente) un departamento
+EXEC EliminarDepartamento @DepartamentoID = 5, @ModificadoPor = 'admin';
 -- Consultar todos los departamentos
 EXEC ConsultarDepartamentos;
 
-
-
 -- Insertar un asociado
-EXEC InsertarAsociado @Nombre = 'Juan Pérez', @Salario = 20000.00, @DepartamentoID = 1, @Estado = 'Activo', @CreadoPor = 'admin';
+-- Ejecutar el procedimiento InsertarAsociado
+EXEC InsertarAsociado 
+    @Nombre = 'Luis Valera', 
+    @Salario = 50000.00, 
+    @FechaIngreso = '2024-10-25', 
+    @Estado = 'Activo', 
+    @DepartamentoID = 2, 
+    @CreadoPor = 'admin';
 -- Modificar un asociado
-EXEC ModificarAsociado @AsociadoID = 1, @Nombre = 'Juan Pérez Gómez', @Salario = 21000.00, @DepartamentoID = 1, @Estado = 'Activo', @ModificadoPor = 'admin';
--- Eliminar (lógicamente) un asociado
+EXEC ModificarAsociado
+    @AsociadoID = 5,
+    @Nombre = 'Mayela Ramirez',
+    @Salario = 50000.00,
+    @FechaIngreso = '2023-01-15',
+    @Estado = 'Activo',
+    @DepartamentoID = 1,
+    @FechaUltimoAumento = '2024-01-01',
+    @SalarioAnterior = 25000.00,
+    @ModificadoPor = 'admin';
+
+-- Eliminar (lÃ³gicamente) un asociado
 EXEC EliminarAsociado @AsociadoID = 1, @ModificadoPor = 'admin';
 -- Consultar todos los asociados
 EXEC ConsultarAsociados;
 
-
-
--- Insertar un aumento para un departamento específico
+-- Insertar un aumento para un departamento especÃ­fico
 EXEC InsertarAumento @DepartamentoID = 1, @Porcentaje = 5.00, @Descripcion = 'Aumento anual', @CreadoPor = 'admin';
 -- Insertar un aumento global (sin especificar departamento)
-EXEC InsertarAumento @Porcentaje = 7.50, @Descripcion = 'Aumento de fin de año para todos', @CreadoPor = 'admin';
+EXEC InsertarAumento @Porcentaje = 7.50, @Descripcion = 'Aumento de fin de aÃ±o para todos', @CreadoPor = 'admin';
 -- Modificar un aumento
 EXEC ModificarAumento @AumentoID = 1, @DepartamentoID = 1, @Porcentaje = 6.00, @Descripcion = 'Ajuste en el aumento anual', @ModificadoPor = 'admin';
--- Eliminar (físicamente) un aumento
+-- Eliminar (fÃ­sicamente) un aumento
 EXEC EliminarAumento @AumentoID = 1;
 -- Consultar todos los aumentos
 EXEC ConsultarAumentos;
 
 
-
 -- Aumentar el salario de todos los asociados en un 5%
 EXEC CalcularAumentoSalario @Porcentaje = 5.00, @DepartamentoID = NULL, @Usuario = 'admin';
 -- Aumentar el salario de los asociados del departamento con ID = 1 en un 3%
-EXEC CalcularAumentoSalario @Porcentaje = 3.00, @DepartamentoID = 1, @Usuario = 'admin';
+EXEC CalcularAumentoSalario @Porcentaje = 4.00, @DepartamentoID = 2, @Usuario = 'admin';
 
 
 -- Consultar el historial de salarios
 EXEC ConsultarHistorialSalarios;
-
 
 
 
